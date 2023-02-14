@@ -1,0 +1,33 @@
+/**************************
+TUNGSTEN Arrays of matrices
+ Copyright Ben McLean 2023
+** drbenmclean@gmail.com **
+**************************/
+
+TUNGSTEN is a simple array, matrix and arrays-of-matrices library for numerical computation. Its predecessor was originally written to provide for fast and low-memory computations for modeling seismic waves as they propagated through rocks with varying elastic properties, as part of the author's PhD. This rewrite was motivated by the desire to complete the suite of functions available for numerical computations, and in order to make a library that is distributable under an open-source license.
+
+TUNGSTEN relies on the "curiously recurring template pattern" (CRTP) to provide matrix, array, and arrays-of-matricies mathematics without the creation of temporaries, resulting in a mimimum of memory being used, providing for the maximum-sized models for a given memory capacity. In addition, the CRTP paradigm allows for "straight-through" calculations of array and matrix math, resulting in fast computations. TUNGSTEN can maximise the optimisation of arrays and matrices in ways that are not possible when arrays-of-matrices (TN_Array<TN_Matrix<datatype,nrows,ncols> >) are required. If arrays-of-matrices are not required, to access this maximum optimisation just #define TN_NOARRAYSOFMATRICES. If arrays-of-matrices are required just leave this undefined.
+
+Arrays, matrices, and arrays-of-matrices can be of int, long int, double, or other types.
+
+TUNGSTEN can be compiled for parallel execution of arrays with the define "#define TN_PARALLELARRAY", which invokes the use of OpenMP to spread array calculations over multiple processors. This would be typical in finite-difference modeling, where the arrays are large, but matrices are small. If the reverse is true and you have very large matrices, you can compile with "#define TN_PARALLELMATRIX" instead, and test what speedup is attainable.
+
+Due to it's templated functions, TUNGSTEN will only allow mathematically-valid matrix expressions to be compiled. For example an 8x3 matrix can be multiplied by an 3x6 matrix, but not by an 4x6 matrix. If you have compile-time errors of the type "no match for operator...", first check that the matrices you are computing are of valid sizes and the same datatypes. As the dimensions of arrays are often not known at compile-time, arrays are not as strictly typed. This means invalid mathematical equations involving arrays may still compile, and it is the user's responsibility to ensure that the arrays in array expressions are compatible, with the same size, origin, dimensions etc.
+
+TUNGSTEN also provides #define TN_INITIALIZE. This define causes new arrays and matrices to be initialized to zero. Unitialised arrays and matrices are faster to create, and you can safely use them uninitialized so long as you assign them values yourself.
+
+Note there are occasions when the minimum-memory model of TUNGSTEN may result in longer execution times. For problems that are speed-limited and for which memory is of lesser concern, the deliberate use of explicit temporaries may result in faster code. This is particularly true of the matrix-multiply function, spatial derivatives, and other functions which rely on accessing multiple array or matrix cells for each cell calculation. In such situations avoiding the use of a temporary may cause matrix and array cells to be accessed multiple times per calculation.
+For example,
+A = B * (C * D)
+may, for large matrices, be significantly slower than
+temp = C * D;
+A = B * temp;
+The best balance between memory use and computational speed for your particular problem may best be determined through experimentation.
+
+Summary of defines:
+#define TN_NOARRAYSOFMATRICES	//optimises arrays and matrices, in ways that can only be used if arrays-of-matrices are not present.
+#define TN_PARALLELARRAY 		//invokes the use of OpenMP parallelization of array expressions.
+#define TN_PARALLELMATRIX 		//invokes the use of OpenMP parallelization of matrix expressions.
+#define TN_INITIALIZE			//initialises new arrays and matrices to zero.
+
+DISCLAIMER OF WARRANTY: THIS SOFTWARE IS PROVIDED ON AN ‘AS IS’ BASIS WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FREEDOM FROM DEFECTS, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. YOUR USE OF THE SOFTWARE IS AT YOUR OWN DISCRETION AND RISK, AND YOU ARE SOLELY RESPONSIBLE FOR ANY DAMAGE OR LOSS RESULTING FROM THEIR USE.
