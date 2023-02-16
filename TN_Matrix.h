@@ -261,16 +261,147 @@ template <class datatype, int nrows, int ncols> class TN_Matrix{
 //************************
 #include <ostream>
 template<class datatype,int nrows,int ncols>
-std::ostream &operator<<(std::ostream &s, const TN_Matrix<datatype,nrows,ncols> &matrix){
+std::ostream &operator<<(std::ostream &s, const TN_Matrix<datatype,nrows,ncols> &m){
 	s << "Matrix[" << nrows << "," << ncols << "] :" << endl;
 	for(int i=0; i<nrows; ++i){
 		for(int j=0; j<ncols; ++j){
-			s << matrix(i,j) << " ";
+			s << m(i,j) << " ";
 		}
 		s << endl;
 	}
     return s;
 };
+
+//*******************
+// Matrix Inverse etc
+//*******************
+
+//matrix transpose
+template<class datatype, int nrows, int ncols> 
+TN_Matrix<datatype,ncols,nrows> transpose(const TN_Matrix<datatype,nrows,ncols> &m){
+	TN_Matrix<datatype,ncols,nrows> t;
+	for(int r=0;r<nrows;++r){
+		for(int c=0;c<ncols;++c){
+			t(c,r) = m(r,c);
+		}
+	}
+	return t;
+};
+
+//see https://www.geeksforgeeks.org/adjoint-inverse-matrix/
+
+//Function to get cofactor of A[p][q], where "A" is a square matrix of dimensions n*n
+template<class datatype, int n>
+TN_Matrix<datatype,n-1,n-1> cofactor(const TN_Matrix<datatype,n,n> &A, int p, int q)
+{
+	int i = 0, j = 0;
+	TN_Matrix<datatype,n-1,n-1> temp;
+	
+	//for each row and col
+	for (int row = 0; row < n; row++) {
+		for (int col = 0; col < n; col++) {
+			//copy into temporary matrix those elements which are not in given row and column
+            if (row != p && col != q) {
+                temp(i,j) = A(row,col);
+				j++;
+				if (j == n - 1) { //if row is filled, increase row index and reset col index
+					j = 0;
+					i++;
+				}
+			}
+		}
+	}
+
+	return temp;
+};
+
+
+
+template<class datatype, int n>
+datatype determinant(const TN_Matrix<datatype,n,n> &A, int ncol = n)
+{
+	datatype det = 0; // Initialize result
+
+	//if matrix contains single element
+    /*if (ncol == 1)
+		return A(0,0);*/
+
+	TN_Matrix<datatype,n-1,n-1> temp; // To store cofactors
+	int sign = 1; // To store sign multiplier
+
+	// Iterate for each element of first row
+	for(int c = 0; c < ncol; c++) {
+        //Getting Cofactor of A(0,c)
+		temp = cofactor(A, 0, c);
+		det += sign * A(0,c) * determinant(temp, ncol - 1);
+
+		//terms are to be added with alternate sign
+		sign = -sign;
+	}
+	return det;
+};
+
+//overload to prevent determinant from recursing once matrix is size 1*1
+template<class datatype>
+datatype determinant(const TN_Matrix<datatype,1,1> &A, int /*ncol*/)
+{
+	return A(0,0);
+};
+
+template<class datatype, int n>
+TN_Matrix<datatype,n,n> adjoint(const TN_Matrix<datatype,n,n> &A)
+{
+	TN_Matrix<datatype,n,n> adj;
+	
+	if (n == 1) {
+		adj(0,0) = 1;
+		return adj;
+	}
+
+	//temp is used to store cofactors of A
+    int sign = 1;
+	TN_Matrix<datatype,n-1,n-1> temp;
+
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
+			// Get cofactor of A[i][j]
+			temp = cofactor(A, i, j);
+
+			// sign of adj[j][i] positive if sum of row
+			// and column indexes is even.
+			sign = ((i + j) % 2 == 0) ? 1 : -1;
+
+			// Interchanging rows and columns to get the
+			// transpose of the cofactor matrix
+			adj(j,i) = (sign) * (determinant(temp, n - 1));
+		}
+	}
+	return adj;
+};
+
+template<class datatype, int n>
+TN_Matrix<datatype,n,n> inverse(const TN_Matrix<datatype,n,n> &A)
+{
+	TN_Matrix<datatype,n,n> inv;
+
+	//Find determinant of A
+	datatype det = determinant(A);
+	if (det == 0) {
+		cout << "Singular matrix, can't find its inverse";
+		return inv;
+	}
+
+	//Find adjoint
+	TN_Matrix<datatype,n,n> adj = adjoint(A);
+
+	//Find Inverse
+	inv = adj/det;
+
+	return inv;
+};
+
+
+
 
 
 

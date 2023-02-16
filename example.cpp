@@ -16,7 +16,7 @@ TUNGSTEN Arrays of matrices
 int main(void)
 {
 	
-	cout << "TN_Numerics examples..." << endl;
+	cout << endl << "TN_Numerics examples..." << endl;
 	
 	//*************
 	//  Matrices
@@ -38,16 +38,35 @@ int main(void)
 	mat5.setrandom();
 	mat6.setrandom();
 
-	/*Matrices can be used in typical operations such as add, subtract, divide, multiply,
-	and inverse. Expressions can be written intuitively and are deliberately made to reflect
+	/*Matrices can be used in typical arithmetic operations such as add, subtract, divide,
+	and multiply. Expressions can be written intuitively and are deliberately made to reflect
 	the mathematical expressions they represent, bridging the divide between math and code.
 	If compiled with
 	#define TN_NOARRAYSOFMATRICES
-	these expressions will be evaluated without the creation of temporaries.
+	many of these expressions will be evaluated without the creation of temporaries.
 	An example expression could look like:
 	*/
 	mat6 = ((mat1 + 7.9) * mat4) - ((mat2 * 2.8 ) * (3.3 + mat5));
 	cout << "mat6 = " << mat6 << endl;
+
+	/*Basic matrix operations such as determinant, adjoint, and inverse are also supported:*/
+	cout << fixed;
+	cout.precision(2);
+	TN_Matrix<double, 3, 3> mat7;
+	TN_Matrix<double, 3, 3> mat8;
+	mat7.set(	3,	0,	2,
+				2,	0,	-2,
+				0,	1,	1);
+	cout << "determinant = " << determinant(mat7) << endl;
+	cout << "adjoint = " << adjoint(mat7) << endl;
+	mat8 = inverse(mat7);
+	cout << "inverse = " << mat8 << endl;
+	TN_Matrix<double, 3, 3> mat9;
+	mat9 = mat7*mat8;
+	cout << "A*A^-1 = " << mat9 << endl;
+	cout.precision(6);
+	cout << defaultfloat;
+	
 
 	//************
 	//  Arrays
@@ -93,7 +112,7 @@ int main(void)
 	/*Again, typical mathematical operations are supported. Array operations are executed cell-wise,
 	while matrix operations are executed according to mathematical constraints (e.g., matrix addition
 	is completed in a cellwise manner, matrix multiply is executed according to matrix multiplication
-	rules. An example expression could look like:	*/
+	rules). An example expression could look like:	*/
 	am5 = ((am1 + 2.88) - am2) * (am3 + am4 / 5.73);
 	cout << "am5(0,0,0) = " << am5(0,0,0) << endl;
 
